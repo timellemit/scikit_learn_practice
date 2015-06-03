@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+
+import numpy as np
 from time import time
 from sklearn import metrics
 
 # Оценка качества кластеризации
+# http://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation
 # inertia - значение минимизируемого фунцкионала - суммы квадратов расстояний
 # между объектами одного кластера 
 # homogeneity_score - от 0 до 1. Насколько кластеры содержат объекты 
@@ -27,11 +30,16 @@ from sklearn import metrics
 # ss = (b - a) / max(a,b). b - расстояние от объекта до ближайшего кластера, к 
 # которому он не принадлежит, a - среднее расстояние до объектов из своего 
 # кластера.
-def bench_k_means(estimator, name, data, labels):
+
+def basic_benchmark(estimator, name, data, labels):
     t0 = time()
     estimator.fit(data)
-    print('% 9s   %.2fs    %i   %.3f   %.3f   %.3f   %.3f   %.3f    %.3f'
-            % (name, (time() - t0), estimator.inertia_,
+    n_clusters_ = len(np.unique(estimator.labels_))
+    print(79 * '_')
+    print("number of estimated clusters : %d" % n_clusters_)
+    print('method time  homo   compl  v-meas     ARI AMI  silhouette')
+    print('% 9s %.3f    %.3f   %.3f   %.3f   %.3f   %.3f    %.3f'
+            % (name, (time() - t0),
             metrics.homogeneity_score(labels, estimator.labels_),
             metrics.completeness_score(labels,estimator.labels_),
             metrics.v_measure_score(labels, estimator.labels_),
@@ -39,3 +47,4 @@ def bench_k_means(estimator, name, data, labels):
             metrics.adjusted_mutual_info_score(labels,  estimator.labels_),
             metrics.silhouette_score(data, estimator.labels_,
                                               metric='euclidean')))
+    print(79 * '_')

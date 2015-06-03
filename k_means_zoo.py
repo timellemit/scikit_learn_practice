@@ -5,7 +5,7 @@ import pylab as pl
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
-from benchmark import bench_k_means
+from benchmark import basic_benchmark
 
 # Для воспроизводимости случайного выбора центроидов из множества
 # объектов в случае вызова kmeans с параметром init='random'
@@ -24,21 +24,20 @@ print("n_classes: %d, \t n_samples %d, \t n_features %d"
       % (n_classes, n_samples, n_features))
 
 print(79 * '_')
-print('% 9s' % 'init'
-      '    time  inertia    homo   compl  v-meas     ARI AMI  silhouette')
-
-bench_k_means(KMeans(init='k-means++', n_clusters=n_classes, n_init=10),
+# 'k-means++' выбирает начальные центры кластеров таким образом, что это
+# ускоряет сходимость метода
+basic_benchmark(KMeans(init='k-means++', n_clusters=n_classes, n_init=10),
               name="k-means++", data=data, labels=labels)
-
-bench_k_means(KMeans(init='random', n_clusters=n_classes, n_init=10),
+# начальные центроиды выбираются случайно из объектов
+basic_benchmark(KMeans(init='random', n_clusters=n_classes, n_init=10),
               name="random", data=data, labels=labels)
-
+# K-means, инициализированный главными компонентами данных
 pca = PCA(n_components=n_classes).fit(data)
-bench_k_means(KMeans(init=pca.components_, n_clusters=n_classes, n_init=1),
+basic_benchmark(KMeans(init=pca.components_, n_clusters=n_classes, n_init=1),
               name="PCA-based",
               data=data, labels=labels)
 
-print(79 * '_')
+
 
 ###############################################################################
 # Визуализация двух выделенных компонент (с помощью PCA) в данных
@@ -46,8 +45,7 @@ print(79 * '_')
 reduced_data = PCA(n_components=2).fit_transform(data)
 kmeans = KMeans(init='k-means++', n_clusters=n_classes, n_init=10)
 kmeans.fit(reduced_data)
- 
-# Сетка с шагом h в прямоугольнике [x_min, x_max][y_min, y_max]
+# Сетка с( шагом h в прямоугольнике [x_min, x_max][y_min, y_max]
 # для раскрашивания в соответствии с меткой класса
 h = .01
 x_min, x_max = reduced_data[:, 0].min(), reduced_data[:, 0].max()
